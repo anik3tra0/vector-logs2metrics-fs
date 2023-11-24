@@ -1,0 +1,17 @@
+version: '3'
+
+networks:
+  my_network:
+
+services:
+  log-generator:
+    container_name: log-gen-vector
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - my_network
+    ports:
+      - "9598:9598"
+    volumes:
+      - ./parser.vrl:/etc/vector/parser.vrl

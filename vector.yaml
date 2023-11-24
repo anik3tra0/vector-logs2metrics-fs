@@ -1,0 +1,71 @@
+data_dir: /var/lib/vector
+sources:
+  nginx_logs:
+    type: file
+    include: # Array of file patterns to include.
+      - /var/tmp/myapp/logs/*.log.gz
+    file_key: file
+    glob_minimum_cooldown_ms: 1000
+    host_key: host
+    ignore_older_secs: 600
+    read_from: beginning
+
+transforms:
+  json_transform:
+    type: remap
+    inputs:
+      - nginx_logs
+    file: '/etc/vector/parser.vrl'
+    drop_on_error: true
+    reroute_dropped: false
+
+  metric_nginx:
+    type: log_to_metric
+    inputs: # A list of upstream source or transform IDs.
+      - json_transform
+    metrics:
+      - type: counter
+        field: app_name # Field value needs to be a float if histogram else any label that is consistent across will do
+        kind: incremental
+        name: http_requests_count
+        timestamp: "{{timestamp}}" # This timestamp value is obtained from the vector event and not from source. Source timestamps can be obtained by transfroming them in json_transform
+        tags:
+          status: "{{response_status}}"
+          host: "{{host}}"
+          org_id: "{{org_id}}"
+          path: "{{path}}"
+          proxy_upstream_name: "{{proxy_upstream_name}}"
+          app_name: "{{app_name}}"
+          method: "{{method}}"
+          transactions: "{{transactions}}"
+          gap_to_renew_for: "{{gap_to_renew_for}}"
+          optin_status: "{{optin_status}}"
+
+  #sinks:
+  ## This outputs to the stdout of vector itself
+  #  my_sink_id:
+  #    type: console
+  #    inputs:
+  #      - nginx_transform
+  #    target: stdout
+  #    encoding:
+  #      codec: "json"
+
+  #  levitate:
+  #    type: prometheus_remote_write
+  #    inputs:
+  #      - nginx_transform
+  #    endpoint: >-
+  #      <levitate_cluster_remote_write_endpoint>
+  #    auth:
+  #      strategy: basic
+  #      user: <levitate_cluster_username>
+  #      password: <levitate_cluster_password>
+  #    healthcheck: false
+
+  levitate:
+    type: prometheus_exporter
+    inputs:
+      - metric_nginx
+    address: 0.0.0.0:9598 # Port to scrape
+    flush_period_secs: 60

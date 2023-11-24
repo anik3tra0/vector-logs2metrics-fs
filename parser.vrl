@@ -1,0 +1,16 @@
+raw_log = parse_json!(.message, max_depth: 3)
+# Unused variables -- Start --
+node_group = raw_log.kubernetes.host
+container_name = raw_log.kubernetes.container_name
+pod_name = raw_log.kubernetes.pod_name
+# Unused variables -- End --
+parsed_log = parse_json!(raw_log.log, max_depth: 3)
+# Have to use the join function here with the something.com string. This is to construct a proper url that parse_url func can parse it inclusive of query params. Simple hack introduced else we have to split the url string and then use the parse_key_value function.
+parsed_url = parse_url!(join!(["http://something.com", parsed_log.request_uri]))
+. = flatten(parsed_url.query)
+.path = parsed_url.path
+.method = parsed_log.request_method
+.app_name = raw_log.app_name
+.response_status = parsed_log.response_status
+.org_id = parsed_log.org_id
+.proxy_upstream_name = parsed_log.proxy_upstream_name
