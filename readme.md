@@ -1,8 +1,10 @@
 # Vector Logs to Metrics to Levitate
 
-This is a way to convert logs to metrics where logs are stored in a File System or Object Store i.e S3, GCS etc. As part of transformation we need to have control over what attributes of json logs need to be considered to be used as dimensions for metrics. These logs need to be seamlessly be converted into metrics in OpenMetrics format and that needs to be remote written to Levitate.
+This is a way to convert logs to metrics where logs are stored in a File System or Object Store i.e. S3, GCS, etc. As part of the transformation, we need to have control over what attributes of JSON logs need to be considered for use as dimensions for metrics. These logs need to be seamlessly converted into metrics in OpenMetrics format, which needs to be remote written to [Levitate](https://last9.io/levitate-tsdb).
 
+I wrote a blog post to explain [how to build logs to metrics pipeline using Vector](https://last9.io/blog/building-logs-to-metrics-pipelines-with-vector/).
 ## What does this repo do?
+
 It has a python script that generates logs based on the standard nginx log format which outputs to stdout.
 
 Fluentd listens to stdout and stores these logs as gzipped on the file system.
